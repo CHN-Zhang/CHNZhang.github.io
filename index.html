@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>校园中的鸟</title>
+  <style>
+    body {
+      background-image: url("p1.jpg");
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center;
+      background-color: #000;
+      height: 100vh;
+      margin: 0;
+      font-family: "Segoe UI", "Helvetica Neue", sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    button {
+      font-family: inherit;
+    }
+
+    #switchButton, #listenButton, #moreButton, #resetButton, #endlessButton {
+      position: fixed;
+      padding: 10px 22px;
+      font-size: 16px;
+      background: linear-gradient(135deg, #ffffffcc, #e0e0e0cc);
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      z-index: 1000;
+      box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+      transition: background 0.3s, transform 0.2s;
+    }
+
+    #switchButton { top: 20px; left: 20px; }
+    #listenButton { top: 70px; left: 20px; }
+    #moreButton { bottom: 20px; left: 20px; }
+    #resetButton { bottom: 20px; right: 20px; }
+    #endlessButton { bottom: 80px; right: 20px; display: none; }
+
+    #switchButton:hover, #listenButton:hover, #moreButton:hover, #resetButton:hover, #endlessButton:hover {
+      background: linear-gradient(135deg, #dcdcdc, #cccccc);
+      transform: scale(1.05);
+    }
+
+    #scoreBoard {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: rgba(255,255,255,0.9);
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: bold;
+      box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+    }
+
+    #correctCount { color: #4CAF50; margin-right: 10px; }
+    #wrongCount { color: #F44336; }
+
+    #introOverlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.6));
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      text-align: center;
+      padding: 20px;
+    }
+
+    #introOverlay p {
+      font-size: 22px;
+      line-height: 1.6;
+      margin-bottom: 30px;
+      max-width: 700px;
+    }
+
+    #enterButton {
+      padding: 12px 28px;
+      font-size: 18px;
+      background-color: #ffffff;
+      color: #333;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    #enterButton:hover { background-color: #dddddd; }
+
+    #quizModal {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      background: white;
+      color: black;
+      padding: 24px;
+      border-radius: 14px;
+      z-index: 3000;
+      box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+      width: 80%;
+      max-width: 800px;
+      display: none;
+    }
+
+    #quizContent {
+      flex: 1;
+      text-align: center;
+    }
+
+    #optionsContainer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .option {
+      margin: 10px 0;
+      padding: 10px;
+      background-color: #f9f9f9;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      font-size: 16px;
+      width: 80%;
+    }
+
+    .option:hover {
+      background-color: #ececec;
+    }
+
+    #resultText {
+      margin-top: 20px;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    #continueButton {
+      margin-top: 16px;
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    #continueButton:hover {
+      background-color: #45a049;
+    }
+
+    #imageInfoContainer {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-left: 20px;
+    }
+
+    #birdImage {
+      aspect-ratio: 4/3;
+      max-width: 300px;
+      max-height: 225px;
+      object-fit: cover;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+
+    #birdInfo {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #f0f0f0;
+      border-radius: 8px;
+      width: 25vw;
+    }
+
+    #moreModal {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      color: black;
+      padding: 24px;
+      border-radius: 14px;
+      z-index: 3000;
+      display: none;
+      box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+      width: 80%;
+      max-width: 520px;
+    }
+
+    #closeMoreButton {
+      margin-top: 16px;
+      padding: 10px 20px;
+      background-color: #FF5722;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    #closeMoreButton:hover {
+      background-color: #E64A19;
+    }
+
+    .fade-in { animation: fadeIn 0.3s ease forwards; }
+    .fade-out { animation: fadeOut 0.3s ease forwards; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+
+    /* 新增的文本窗口样式 */
+    #textModal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 3000;
+    }
+    
+    .modal-box {
+      padding: 20px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+      text-align: center;
+      max-width: 400px;
+      width: 80%;
+    }
+    
+    .modal-title {
+      font-size: 1.5em;
+      margin-bottom: 10px;
+      color: #333;
+    }
+    
+    .modal-content {
+      font-size: 1em;
+      color: #555;
+      margin-bottom: 20px;
+    }
+    
+    .modal-footer {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #eee;
+      display: flex;
+      justify-content: center;
+    }
+    
+    .modal-button {
+      padding: 8px 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.9em;
+    }
+    
+    .modal-button:hover {
+      background-color: #45a049;
+    }
+    
+    #closeTextButton {
+      margin-top: 16px;
+      padding: 10px 20px;
+      background-color: #FF5722;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    #closeTextButton:hover {
+      background-color: #E64A19;
+    }
+
+    /* 新增的完整场景切换窗口 */
+    #completeModal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 3000;
+    }
+
+    .modal-content {
+      padding: 20px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+      text-align: center;
+    }
+
+    #completionModal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 3000;
+    }
+
+    .completion-content {
+      padding: 20px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+      text-align: center;
+      max-width: 400px;
+      width: 80%;
+    }
+
+    #endlessModal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 3000;
+    }
+
+    #endlessContent {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: white;
+      padding: 24px;
+      border-radius: 14px;
+      box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+      width: 50%;
+      height: 50%;
+    }
+
+    #endlessImage {
+      aspect-ratio: 4/3;
+      max-width: 450px; /* 增大 50% */
+      max-height: 337.5px; /* 增大 50% */
+      object-fit: cover;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      margin-bottom: 20px;
+    }
+
+    #endlessAnswer {
+      margin-top: 20px;
+      padding: 10px;
+      width: 80%;
+      font-size: 16px;
+    }
+
+    #endlessSubmit {
+      margin-top: 10px;
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    #endlessSubmit:hover {
+      background-color: #45a049;
+    }
+
+    #endlessResult {
+      margin-top: 20px;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    #endlessExit {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #FF5722;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    #endlessExit:hover {
+      background-color: #E64A19;
+    }
+
+    #endlessScoreBoard {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(255,255,255,0.9);
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: bold;
+      box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+      z-index: 4000;
+      display: none;
+    }
+
+    #endlessScore {
+      color: #4CAF50;
+    }
+
+    #endlessStreak {
+      position: fixed;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(255,255,255,0.9);
+      padding: 5px 10px;
+      border-radius: 12px;
+      font-size: 14px;
+      box-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+      z-index: 4000;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="introOverlay">
+    <p>或许你从未注意到，我们的校园中就有许多种鸟，仔细聆听，你便能在身边听到许多鸟鸣</p>
+    <button id="enterButton">让我们来探索一下</button>
+  </div>
+  <div id="scoreBoard"><span id="correctCount">正确：0</span><span id="wrongCount">错误：0</span></div>
+  <button id="switchButton">更换位置</button>
+  <button id="listenButton">聆听</button>
+  <button id="moreButton">了解更多</button>
+  <button id="resetButton">重置分数</button>
+  <button id="endlessButton">无尽模式</button>
+  <audio id="audioPlayer"></audio>
+  <audio id="clickSound" src="click.mp3"></audio>
+  <div id="quizModal">
+    <div id="quizContent">
+      <h3>这是什么？</h3>
+      <div id="optionsContainer"></div>
+      <div id="resultText"></div>
+      <button id="continueButton">继续</button>
+    </div>
+    <div id="imageInfoContainer">
+      <img id="birdImage" src="" alt="鸟类图片">
+      <div id="birdInfo"></div>
+    </div>
+  </div>
+  <div id="moreModal">
+    <div id="moreContent"></div>
+    <button id="closeMoreButton">关闭</button>
+  </div>
+  <div id="textModal">
+    <div class="modal-box">
+      <h3 class="modal-title">提示</h3>
+      <p class="modal-content" id="modalMessage">当前区域所有题目均已回答！</p>
+      <div class="modal-footer">
+        <button class="modal-button" id="modalButton">确定</button>
+      </div>
+    </div>
+  </div>
+  <div id="completeModal">
+    <div class="modal-content">
+      <h3>提示</h3>
+      <p>这里的鸟你已经都看见过了，换个地方继续探索吧！</p>
+      <button id="goOutRealButton">转换场景</button>
+    </div>
+  </div>
+
+  <div id="completionModal">
+    <div class="completion-content">
+      <h3>恭喜！</h3>
+      <p id="completionMessage">您已通关！</p>
+      <div id="completionButtons">
+        <button id="completionResetButton">重置得分</button>
+        <button id="completionEasterEggButton" style="display: none;">彩蛋</button>
+        <button id="completionEndlessButton">无尽模式</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="endlessModal">
+    <div id="endlessContent">
+      <img id="endlessImage" src="" alt="鸟类图片">
+      <input type="text" id="endlessAnswer" placeholder="请输入鸟类名称">
+      <button id="endlessSubmit">提交</button>
+      <div id="endlessResult"></div>
+      <button id="endlessExit">退出无尽模式</button>
+    </div>
+  </div>
+
+  <div id="endlessScoreBoard">
+    <span id="endlessScore">得分：0</span>
+  </div>
+
+  <div id="endlessStreak">
+    <span id="endlessStreakCount">连续答对：0</span>
+  </div>
+
+  <script>
+    const bgImages = ["p1.jpg", "p2.jpg", "p3.jpg", "p4.jpg"];
+    const audioSets = {
+      "p1.jpg": ["1.mp3", "2.mp3", "3.mp3", "4.mp3", "5.mp3", "6.mp3"],
+      "p2.jpg": ["A.mp3", "B.mp3", "C.mp3", "D.mp3", "E.mp3", "F.mp3"],
+      "p3.jpg": ["G.mp3", "H.mp3", "I.mp3", "J.mp3", "K.mp3", "L.mp3", "M.mp3", "W.mp3", "X.mp3"],
+      "p4.jpg": ["N.mp3", "O.mp3", "P.mp3", "Q.mp3", "R.mp3", "S.mp3", "T.mp3", "U.mp3", "V.mp3"]
+    };
+    const labels = ["喜鹊", "灰喜鹊", "灰椋鸟", "乌鸫", "珠颈斑鸠", "麻雀", "四声杜鹃", "银喉长尾山雀", "绿头鸭", "鸳鸯", "凤头䴙䴘", "小䴙䴘", "苍鹭", "夜鹭", "赤嘴潜鸭", "星头啄木鸟", "大斑啄木鸟", "八哥", "白眉姬鹟", "绿背姬鹟", "大山雀", "黄腹山雀", "蓝喉歌鸲", "红尾水鸲", "黑水鸡", "白骨顶"];
+    const correctMap = {
+      "1.mp3": "喜鹊", "2.mp3": "灰喜鹊", "3.mp3": "灰椋鸟",
+      "4.mp3": "乌鸫", "5.mp3": "珠颈斑鸠", "6.mp3": "麻雀",
+      "A.mp3": "四声杜鹃", "B.mp3": "银喉长尾山雀",
+      "C.mp3": "灰椋鸟", "D.mp3": "珠颈斑鸠",
+      "E.mp3": "灰喜鹊", "F.mp3": "喜鹊",
+      "G.mp3": "绿头鸭", "H.mp3": "鸳鸯", "I.mp3": "凤头䴙䴘",
+      "J.mp3": "小䴙䴘", "K.mp3": "苍鹭", "L.mp3": "夜鹭",
+      "M.mp3": "赤嘴潜鸭", "W.mp3": "黑水鸡", "X.mp3": "白骨顶",
+      "N.mp3": "星头啄木鸟", "O.mp3": "大斑啄木鸟",
+      "P.mp3": "八哥", "Q.mp3": "白眉姬鹟", "R.mp3": "绿背姬鹟",
+      "S.mp3": "大山雀", "T.mp3": "黄腹山雀", "U.mp3": "蓝喉歌鸲", "V.mp3": "红尾水鸲"
+    };
+    const birdInfos = {
+      "喜鹊": "喜鹊是一种常见的鸟类，体型中等，羽毛以黑白两色为主，是中国传统的吉祥鸟，常见于乡村和城市。",
+      "灰喜鹊": "灰喜鹊体型与喜鹊相似，但羽毛颜色为灰色与白色相间的图案，性格活泼，常见于中国北方地区。",
+      "灰椋鸟": "灰椋鸟是一种小型鸣禽，羽毛呈灰褐色，常见于山地和森林边缘，善于模仿其他鸟类的叫声。",
+      "乌鸫": "乌鸫羽毛全黑，是一种中型鸣禽，常见于森林和果园，歌声悦耳动听。",
+      "珠颈斑鸠": "珠颈斑鸠体型类似鸽子，颈部有一圈白色的羽毛，常见于乡村和城市绿化带。",
+      "麻雀": "麻雀是一种小型鸣禽，羽毛以褐色和灰色为主，适应能力强，几乎遍布全球。",
+      "四声杜鹃": "四声杜鹃是一种中型鸣禽，因其叫声有四个音节而得名，常见于森林和山地。",
+      "银喉长尾山雀": "银喉长尾山雀体型小巧，尾羽较长，喉部为银白色，常见于山地森林中。",
+      "绿头鸭": "绿头鸭是一种常见的鸭类，雄鸟头部为绿色，常见于湖泊和河流。",
+      "鸳鸯": "鸳鸯是一种小型鸭类，羽毛色彩鲜艳，常见于湖泊和溪流，是忠贞爱情的象征。",
+      "凤头䴙䴘": "凤头䴙䴘是一种水鸟，头部有明显的凤头，常见于湖泊和水库。",
+      "小䴙䴘": "小䴙䴘是一种小型水鸟，体型较小，常见于湖泊和池塘。",
+      "苍鹭": "苍鹭是一种大型涉禽，羽毛灰色，腿长，常见于湿地和水田。",
+      "夜鹭": "夜鹭是一种中型涉禽，夜间活动，常见于湿地和水边。",
+      "赤嘴潜鸭": "赤嘴潜鸭是一种小型鸭类，嘴红色，常见于湖泊和池塘。",
+      "星头啄木鸟": "星头啄木鸟是一种小型啄木鸟，头部有红色斑点，常见于森林。",
+      "大斑啄木鸟": "大斑啄木鸟是一种中型啄木鸟，背部有明显的大白斑，常见于森林。",
+      "八哥": "八哥是一种中型鸣禽，羽毛黑色，能模仿人类语音，常见于乡村和城市。",
+      "白眉姬鹟": "白眉姬鹟是一种小型鸣禽，眉纹白色，常见于森林和林缘。",
+      "绿背姬鹟": "绿背姬鹟是一种小型鸣禽，背部呈绿色，常见于森林。",
+      "大山雀": "大山雀是一种小型鸣禽，羽毛以蓝白相间为主，常见于山地和森林。",
+      "黄腹山雀": "黄腹山雀是一种小型鸣禽，腹部呈黄色，常见于山地和森林。",
+      "蓝喉歌鸲": "蓝喉歌鸲是一种小型鸣禽，喉部呈蓝色，常见于森林和山地。",
+      "红尾水鸲": "红尾水鸲是一种小型鸣禽，尾部呈红色，常见于水域附近。",
+      "黑水鸡": "黑水鸡是一种中型秧鸡科鸟类，全身几乎为黑色，带有绿色的金属光泽，常见于湿地和水边。",
+      "白骨顶": "白骨顶是一种中型秧鸡科鸟类，头部和颈部为白色，身体其他部分为黑色，常见于湿地和水边。"
+    };
+    let answeredLabels = {};
+    let answeredMap = { "p1.jpg": {}, "p2.jpg": {}, "p3.jpg": {}, "p4.jpg": {} };
+    let correctTotal = 0, wrongTotal = 0, currentIndex = 0, currentAudio = "";
+    let isEndlessMode = false;
+    let endlessScore = 0;
+    let endlessStreak = 0;
+    let hasShownEndlessButton = false;
+    let endlessHighScore = 0;
+    let endlessWrongCount = 0;
+    const endlessFolderMap = {
+      "1": "白鹡鸰",
+      "2": "苍鹭",
+      "3": "绿头鸭",
+      "4": "乌鸫",
+      "5": "夜鹭",
+      "6": "珠颈斑鸠"
+    };
+    const endlessReverseMap = {
+      "白鹡鸰": "1",
+      "苍鹭": "2",
+      "绿头鸭": "3",
+      "乌鸫": "4",
+      "夜鹭": "5",
+      "珠颈斑鸠": "6"
+    };
+
+    function playClickSound() {
+      const clickSound = document.getElementById("clickSound");
+      clickSound.currentTime = 0; 
+      clickSound.play().catch(() => {}); // 隐藏错误提示
+      setTimeout(() => { if (!clickSound.paused) clickSound.pause(); }, 1000);
+    }
+
+    document.getElementById("switchButton").addEventListener("click", () => {  
+      playClickSound();
+      if (currentIndex === 0 || currentIndex === 1) {
+        currentIndex = (currentIndex === 0) ? 1 : 0;
+      } else if (currentIndex === 2 || currentIndex === 3) {
+        currentIndex = (currentIndex === 2) ? 3 : 2;
+      }
+      document.body.style.backgroundImage = `url("${bgImages[currentIndex]}")`;
+      document.getElementById("listenButton").textContent = (currentIndex === 2 || currentIndex === 3) ? "观察" : "聆听";
+    });
+
+    document.getElementById("listenButton").addEventListener("click", () => {  
+      playClickSound();
+      const currentBg = bgImages[currentIndex];
+      const audioList = audioSets[currentBg];
+      if (!audioList) return;
+      const notAnswered = audioList.filter(audio => {
+        const label = correctMap[audio];
+        return label && !answeredLabels[label];
+      });
+      if (notAnswered.length === 0) {
+        if (currentIndex === 0 || currentIndex === 1) {
+          if (checkAllLabelsAnswered()) {
+            document.getElementById("completeModal").style.display = "flex";
+          } else {
+            showModal("当前区域所有题目均已回答！");
+          }
+        } else if (currentIndex === 2 || currentIndex === 3) {
+          if (checkAllLabelsAnsweredP3P4()) {
+            document.getElementById("completionModal").style.display = "flex";
+            document.getElementById("completionEasterEggButton").style.display = wrongTotal === 0 ? "inline-block" : "none";
+          } else {
+            showModal("当前区域所有题目均已回答！");
+          }
+        }
+        return;
+      }
+      const randomIndex = Math.floor(Math.random() * notAnswered.length);
+      currentAudio = notAnswered[randomIndex];
+      const audioPlayer = document.getElementById("audioPlayer");
+      audioPlayer.src = currentAudio;
+      audioPlayer.play().catch(e => alert("音频播放失败：" + e.message));
+      document.getElementById("birdImage").src = currentAudio.replace(/\.[^/.]+$/, ".jpg");
+      document.getElementById("birdInfo").textContent = "";
+      showQuizModal();
+    });
+
+    function checkAllLabelsAnswered() {
+      const labelsInP1P2 = new Set();
+      [...(audioSets["p1.jpg"] || []), ...(audioSets["p2.jpg"] || [])].forEach(a => {
+        const label = correctMap[a];
+        if (label) labelsInP1P2.add(label);
+      });
+      return [...labelsInP1P2].every(label => answeredLabels[label]);
+    }
+
+    function checkAllLabelsAnsweredP3P4() {
+      const labelsInP3P4 = new Set();
+      [...(audioSets["p3.jpg"] || []), ...(audioSets["p4.jpg"] || [])].forEach(a => {
+        const label = correctMap[a];
+        if (label) labelsInP3P4.add(label);
+      });
+      return [...labelsInP3P4].every(label => answeredLabels[label]);
+    }
+
+    function showQuizModal() {
+      const modal = document.getElementById("quizModal");
+      modal.style.display = "flex";
+      const optionsContainer = document.getElementById("optionsContainer");
+      const resultText = document.getElementById("resultText");
+      const continueButton = document.getElementById("continueButton");
+      resultText.textContent = "";
+      continueButton.style.display = "none";
+      optionsContainer.innerHTML = "";
+      
+      if (currentIndex === 0 || currentIndex === 1) {
+        const p1p2Labels = ["喜鹊", "灰喜鹊", "灰椋鸟", "乌鸫", "珠颈斑鸠", "麻雀", "四声杜鹃", "银喉长尾山雀"];
+        p1p2Labels.forEach(label => {
+          const div = document.createElement("div");
+          div.className = "option";
+          div.textContent = label;
+          div.onclick = () => {
+            playClickSound();
+            const correctAnswer = correctMap[currentAudio];
+            const currentBg = bgImages[currentIndex];
+            if (label === correctAnswer) {
+              resultText.textContent = "正确！";
+              resultText.style.color = "green";
+              if (!answeredLabels[correctAnswer]) {
+                correctTotal++;
+                answeredLabels[correctAnswer] = true;
+                answeredMap[currentBg][currentAudio] = true;
+                updateScoreBoard();
+              }
+              document.getElementById("birdInfo").textContent = birdInfos[correctAnswer];
+            } else {
+              resultText.textContent = `错误，正确答案是：${correctAnswer}`;
+              resultText.style.color = "red";
+              if (!answeredLabels[correctAnswer]) {
+                wrongTotal++;
+                updateScoreBoard();
+              }
+            }
+            disableOptions();
+            continueButton.style.display = "inline-block";
+          };
+          optionsContainer.appendChild(div);
+        });
+      } else if (currentIndex === 2) {
+        const p3Labels = ["绿头鸭", "鸳鸯", "凤头䴙䴘", "小䴙䴘", "苍鹭", "夜鹭", "赤嘴潜鸭", "黑水鸡", "白骨顶"];
+        p3Labels.forEach(label => {
+          const div = document.createElement("div");
+          div.className = "option";
+          div.textContent = label;
+          div.onclick = () => {
+            playClickSound();
+            const correctAnswer = correctMap[currentAudio];
+            const currentBg = bgImages[currentIndex];
+            if (label === correctAnswer) {
+              resultText.textContent = "正确！";
+              resultText.style.color = "green";
+              if (!answeredLabels[correctAnswer]) {
+                correctTotal++;
+                answeredLabels[correctAnswer] = true;
+                answeredMap[currentBg][currentAudio] = true;
+                updateScoreBoard();
+              }
+              document.getElementById("birdInfo").textContent = birdInfos[correctAnswer];
+            } else {
+              resultText.textContent = `错误，正确答案是：${correctAnswer}`;
+              resultText.style.color = "red";
+              if (!answeredLabels[correctAnswer]) {
+                wrongTotal++;
+                updateScoreBoard();
+              }
+            }
+            disableOptions();
+            continueButton.style.display = "inline-block";
+          };
+          optionsContainer.appendChild(div);
+        });
+      } else if (currentIndex === 3) {
+        const p4Labels = ["星头啄木鸟", "大斑啄木鸟", "八哥", "白眉姬鹟", "绿背姬鹟", "大山雀", "黄腹山雀", "蓝喉歌鸲", "红尾水鸲"];
+        p4Labels.forEach(label => {
+          const div = document.createElement("div");
+          div.className = "option";
+          div.textContent = label;
+          div.onclick = () => {
+            playClickSound();
+            const correctAnswer = correctMap[currentAudio];
+            const currentBg = bgImages[currentIndex];
+            if (label === correctAnswer) {
+              resultText.textContent = "正确！";
+              resultText.style.color = "green";
+              if (!answeredLabels[correctAnswer]) {
+                correctTotal++;
+                answeredLabels[correctAnswer] = true;
+                answeredMap[currentBg][currentAudio] = true;
+                updateScoreBoard();
+              }
+              document.getElementById("birdInfo").textContent = birdInfos[correctAnswer];
+            } else {
+              resultText.textContent = `错误，正确答案是：${correctAnswer}`;
+              resultText.style.color = "red";
+              if (!answeredLabels[correctAnswer]) {
+                wrongTotal++;
+                updateScoreBoard();
+              }
+            }
+            disableOptions();
+            continueButton.style.display = "inline-block";
+          };
+          optionsContainer.appendChild(div);
+        });
+      }
+      continueButton.onclick = () => {
+        playClickSound();
+        const audioPlayer = document.getElementById("audioPlayer");
+        audioPlayer.pause(); 
+        audioPlayer.currentTime = 0;
+        document.getElementById("birdImage").src = "";
+        document.getElementById("birdInfo").textContent = "";
+        modal.style.display = "none";
+      };
+    }
+
+    function disableOptions() {
+      const optionsContainer = document.getElementById("optionsContainer");
+      Array.from(optionsContainer.children).forEach(option => {
+        option.onclick = null;
+      });
+    }
+
+    function updateScoreBoard() {
+      document.getElementById("correctCount").textContent = "正确：" + correctTotal;
+      document.getElementById("wrongCount").textContent = "错误：" + wrongTotal;
+      
+      // 检查是否所有题目都已完成
+      const allP1P2Answered = checkAllLabelsAnswered();
+      const allP3P4Answered = checkAllLabelsAnsweredP3P4();
+      
+      if (allP1P2Answered && allP3P4Answered && !hasShownEndlessButton) {
+        document.getElementById("endlessButton").style.display = "flex";
+        hasShownEndlessButton = true;
+      }
+    }
+
+    document.getElementById("completionResetButton").addEventListener("click", () => {
+      playClickSound();
+      correctTotal = 0;
+      wrongTotal = 0;
+      answeredLabels = {};
+      answeredMap = { "p1.jpg": {}, "p2.jpg": {}, "p3.jpg": {}, "p4.jpg": {} };
+      currentIndex = 0;
+      document.body.style.backgroundImage = `url("${bgImages[currentIndex]}")`;
+      document.getElementById("listenButton").textContent = "聆听";
+      document.getElementById("birdImage").src = "";
+      document.getElementById("birdInfo").textContent = "";
+      updateScoreBoard();
+      document.getElementById("completionModal").style.display = "none";
+    });
+
+    document.getElementById("completionEasterEggButton").addEventListener("click", () => {
+      playClickSound();
+      alert("这是将来的彩蛋");
+    });
+
+    document.getElementById("completionEndlessButton").addEventListener("click", () => {
+      playClickSound();
+      startEndlessMode();
+    });
+
+    document.getElementById("goOutRealButton").addEventListener("click", () => {
+      playClickSound();
+      if (currentIndex === 0 || currentIndex === 1) {
+        currentIndex = 2;
+      } else {
+        currentIndex = 0;
+      }
+      document.body.style.backgroundImage = `url("${bgImages[currentIndex]}")`;
+      document.getElementById("listenButton").textContent = (currentIndex === 2 || currentIndex === 3) ? "观察" : "聆听";
+      document.getElementById("completeModal").style.display = "none";
+    });
+
+    document.getElementById("moreButton").addEventListener("click", async () => {
+      playClickSound();
+      const moreModal = document.getElementById("moreModal");
+      const moreContent = document.getElementById("moreContent");
+      
+      try {
+        const response = await fetch('x.txt');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const content = await response.text();
+        moreContent.innerHTML = `<pre style="white-space: pre-wrap; font-family: inherit; text-align: left;">${content}</pre>`;
+        moreModal.style.display = "block";
+      } catch (error) {
+        console.error('There was a problem with the fetch operation:', error);
+        moreContent.innerHTML = `<p style="color: red;">读取文件失败，请检查文件路径和网络连接。</p>`;
+        moreModal.style.display = "block";
+      }
+    });
+
+    document.getElementById("closeMoreButton").addEventListener("click", () => {
+      playClickSound();
+      document.getElementById("moreModal").style.display = "none";
+    });
+
+    document.getElementById("resetButton").addEventListener("click", () => {
+      playClickSound();
+      correctTotal = 0;
+      wrongTotal = 0;
+      answeredLabels = {};
+      answeredMap = { "p1.jpg": {}, "p2.jpg": {}, "p3.jpg": {}, "p4.jpg": {} };
+      currentIndex = 0;
+      document.body.style.backgroundImage = `url("${bgImages[currentIndex]}")`;
+      document.getElementById("listenButton").textContent = "聆听";
+      document.getElementById("birdImage").src = "";
+      document.getElementById("birdInfo").textContent = "";
+      updateScoreBoard();
+      showModal("分数已重置，场景已切换至起始地点。");
+    });
+
+    document.getElementById("enterButton").addEventListener("click", () => {
+      playClickSound();
+      document.getElementById("introOverlay").style.display = "none";
+    });
+
+    document.body.style.backgroundImage = `url("${bgImages[currentIndex]}")`;
+
+    function showModal(message) {
+      const modal = document.getElementById("textModal");
+      const modalMessage = document.getElementById("modalMessage");
+      const modalButton = document.getElementById("modalButton");
+      modalMessage.textContent = message;
+      modal.style.display = "flex";
+      modalButton.onclick = () => {
+        playClickSound();
+        modal.style.display = "none";
+      };
+    }
+
+    document.getElementById("endlessButton").addEventListener("click", () => {
+      playClickSound();
+      startEndlessMode();
+    });
+
+    function startEndlessMode() {
+      isEndlessMode = true;
+      correctTotal = 0;
+      wrongTotal = 0;
+      answeredLabels = {};
+      answeredMap = { "p1.jpg": {}, "p2.jpg": {}, "p3.jpg": {}, "p4.jpg": {} };
+      currentIndex = 0;
+      endlessScore = 0;
+      endlessStreak = 0;
+      endlessWrongCount = 0;
+      
+      // 隐藏答题窗口
+      const quizModal = document.getElementById("quizModal");
+      quizModal.style.display = "none";
+      
+      document.getElementById("scoreBoard").style.display = "none";
+      document.getElementById("completionModal").style.display = "none";
+      document.body.style.backgroundImage = `url("p5.jpg")`;
+      document.getElementById("listenButton").textContent = "聆听";
+      document.getElementById("birdImage").src = "";
+      document.getElementById("birdInfo").textContent = "";
+      showModal("已进入无尽模式！");
+      setTimeout(() => {
+        document.getElementById("endlessModal").style.display = "flex";
+        loadRandomEndlessImage();
+        document.getElementById("endlessScoreBoard").style.display = "block";
+        document.getElementById("endlessStreak").style.display = "block";
+        updateEndlessScoreBoard();
+      }, 1000);
+    }
+
+    function loadRandomEndlessImage() {
+      const gameFolder = "game";
+      const subFolderNumbers = ["1", "2", "3", "4", "5", "6"];
+      const randomIndex = Math.floor(Math.random() * subFolderNumbers.length);
+      const selectedFolderNumber = subFolderNumbers[randomIndex];
+      const selectedFolderName = endlessFolderMap[selectedFolderNumber];
+      const imageFiles = ["1.jpg", "2.jpg", "3.jpg"];
+      const randomImageIndex = Math.floor(Math.random() * imageFiles.length);
+      const selectedImage = imageFiles[randomImageIndex];
+      // 使用相对路径
+      document.getElementById("endlessImage").src = `${gameFolder}/${selectedFolderNumber}/${selectedImage}`;
+      currentAudio = selectedFolderName;
+      document.getElementById("endlessAnswer").value = "";
+      document.getElementById("endlessResult").textContent = "";
+    }
+
+    document.getElementById("endlessSubmit").addEventListener("click", () => {
+      const userAnswer = document.getElementById("endlessAnswer").value.trim();
+      if (!userAnswer) return;
+      const correctAnswer = currentAudio;
+      const resultText = document.getElementById("endlessResult");
+      if (userAnswer === correctAnswer) {
+        resultText.textContent = "正确！";
+        resultText.style.color = "green";
+        endlessScore++;
+        endlessStreak++;
+        if (endlessStreak >= 3) {
+          endlessScore++;
+          resultText.textContent += " 连击奖励！";
+        }
+        if (endlessScore > endlessHighScore) {
+          endlessHighScore = endlessScore;
+        }
+        document.getElementById("endlessStreakCount").textContent = "连续答对：" + endlessStreak;
+        document.getElementById("endlessStreakCount").style.color = "#4CAF50";
+      } else {
+        resultText.textContent = `错误，正确答案是：${correctAnswer}`;
+        resultText.style.color = "red";
+        endlessScore--;
+        endlessStreak = 0;
+        endlessWrongCount++;
+        document.getElementById("endlessStreakCount").textContent = "连续错误：" + endlessWrongCount;
+        document.getElementById("endlessStreakCount").style.color = "#F44336";
+        if (endlessWrongCount >= 5) {
+          playClickSound();
+          isEndlessMode = false;
+          document.getElementById("endlessModal").style.display = "none";
+          document.getElementById("endlessScoreBoard").style.display = "none";
+          document.getElementById("endlessStreak").style.display = "none";
+          document.getElementById("scoreBoard").style.display = "block";
+          document.body.style.backgroundImage = `url("${bgImages[currentIndex]}")`;
+          showModal(`已退出无尽模式。你回答错误次数超过5次，游戏强制结束。最终得分为：${endlessScore}`);
+          endlessScore = 0;
+          endlessStreak = 0;
+          endlessWrongCount = 0;
+          return;
+        }
+      }
+      updateEndlessScoreBoard();
+      loadRandomEndlessImage();
+    });
+
+    document.getElementById("endlessExit").addEventListener("click", () => {
+      playClickSound();
+      isEndlessMode = false;
+      document.getElementById("endlessModal").style.display = "none";
+      document.getElementById("endlessScoreBoard").style.display = "none";
+      document.getElementById("endlessStreak").style.display = "none";
+      document.getElementById("scoreBoard").style.display = "block";
+      document.body.style.backgroundImage = `url("${bgImages[currentIndex]}")`;
+      showModal(`已退出无尽模式。最终得分为：${endlessScore}`);
+      endlessScore = 0;
+      endlessStreak = 0;
+      endlessWrongCount = 0;
+    });
+
+    function updateEndlessScoreBoard() {
+      document.getElementById("endlessScore").textContent = `得分：${endlessScore} (最高：${endlessHighScore})`;
+    }
+  </script>
+</body>
+</html>
